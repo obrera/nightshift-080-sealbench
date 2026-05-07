@@ -1,0 +1,35 @@
+services:
+  sealbench:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      SEALBENCH_DB_PATH: /data/sealbench.sqlite
+    labels:
+      traefik.docker.network: dokploy-network
+      traefik.enable: "true"
+      traefik.http.routers.sealbench080-web.entrypoints: web
+      traefik.http.routers.sealbench080-web.middlewares: redirect-to-https@file
+      traefik.http.routers.sealbench080-web.rule: Host(`sealbench080.colmena.dev`)
+      traefik.http.routers.sealbench080-web.service: sealbench080-web
+      traefik.http.routers.sealbench080-websecure.entrypoints: websecure
+      traefik.http.routers.sealbench080-websecure.rule: Host(`sealbench080.colmena.dev`)
+      traefik.http.routers.sealbench080-websecure.service: sealbench080-websecure
+      traefik.http.routers.sealbench080-websecure.tls.certresolver: letsencrypt
+      traefik.http.services.sealbench080-web.loadbalancer.server.port: "3000"
+      traefik.http.services.sealbench080-websecure.loadbalancer.server.port: "3000"
+    networks:
+      - default
+      - dokploy-network
+    restart: unless-stopped
+    volumes:
+      - sealbench-data:/data
+
+networks:
+  dokploy-network:
+    external: true
+
+volumes:
+  sealbench-data:

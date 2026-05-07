@@ -10,7 +10,7 @@ const queryClient = new QueryClient()
 
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
-    <ThemeProvider>
+    <ThemeProvider defaultTheme="dark" storageKey="sealbench-theme">
       <QueryClientProvider client={queryClient}>
         <SolanaProvider>
           {children}

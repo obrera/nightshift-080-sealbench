@@ -12,7 +12,7 @@ export interface HeaderLink {
 export function ShellUiHeader({ links }: { links: HeaderLink[] }) {
   return (
     <header className="border-b border-border/60 bg-background px-4 py-3">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4">
+      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4">
         <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:gap-8">
           <Link className="text-xl font-semibold tracking-tight" to="/">
             SealBench
@@ -34,7 +34,7 @@ export function ShellUiHeader({ links }: { links: HeaderLink[] }) {
             ))}
           </nav>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
           <SolanaUiWalletDialog />
           <SolanaUiClusterDropdown />
           <ThemeToggle />

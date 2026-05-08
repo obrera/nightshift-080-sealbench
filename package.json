@@ -1,6 +1,6 @@
 {
   "name": "sealbench",
-  "description": "",
+  "description": "Nightshift 080 legal-document evidence and MPL Core proof seal workbench.",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -14,7 +14,8 @@
     "prepare": "test ! -d .git || lefthook install",
     "preview": "vite preview",
     "server": "node --import tsx server/index.ts",
-    "verify:issue": "tsx scripts/verify-issue-runtime.ts"
+    "verify:issue": "tsx scripts/verify-issue-runtime.ts",
+    "verify:runtime": "bun run build && tsx scripts/verify-issue-runtime.ts --serve"
   },
   "dependencies": {
     "@base-ui/react": "1.4.0",

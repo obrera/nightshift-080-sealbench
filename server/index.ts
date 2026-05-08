@@ -21,12 +21,38 @@ const app = new Hono()
 
 app.use('/api/*', cors())
 app.use('/api/*', logger())
+app.onError((error, context) =>
+  context.json(
+    {
+      error: error.message,
+      ok: false,
+    },
+    400,
+  ),
+)
 
 app.get('/api/health', (context) =>
   context.json({
     build: '080',
     date: '2026-05-07',
     ok: true,
+    service: 'SealBench',
+  }),
+)
+
+app.get('/api/bootstrap', (context) =>
+  context.json({
+    build: '080',
+    capabilities: [
+      'wallet SIWS session registration',
+      'server-side SHA-256 evidence packet intake',
+      'review audit workflow',
+      'public packet/hash verifier',
+      'MPL Core proof seal issuance when runtime is configured',
+    ],
+    challenge: 'Nightshift build 080',
+    mpl: getMplRuntimeStatus(),
+    project: 'SealBench',
     service: 'SealBench',
   }),
 )

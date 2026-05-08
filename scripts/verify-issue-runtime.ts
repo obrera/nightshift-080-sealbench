@@ -1,6 +1,17 @@
+import { type ChildProcess, spawn } from 'node:child_process'
+import { mkdtempSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+
 const baseUrl = process.env.SEALBENCH_BASE_URL ?? 'http://localhost:3000'
+const expectIssued = process.env.SEALBENCH_EXPECT_ISSUED === 'true'
+const fallbackWalletAddress = '11111111111111111111111111111111'
 
 interface IssueResponse {
+  packet?: {
+    assetAddress?: null | string
+    transactionSignature?: null | string
+  }
   status?: {
     mode?: string
   }
@@ -17,7 +28,54 @@ interface SessionResponse {
 }
 
 async function main() {
-  const walletAddress = 'SealBenchVerifier111111111111111111111111111111'
+  const localServer = process.argv.includes('--serve') ? await startLocalServer() : null
+
+  try {
+    await verifyIssuePath()
+  } finally {
+    localServer?.stop()
+  }
+}
+
+async function request<T>(path: string, init: RequestInit): Promise<T> {
+  const response = await fetch(`${baseUrl}${path}`, {
+    headers: { 'Content-Type': 'application/json' },
+    ...init,
+  })
+  const payload = await response.json()
+  if (!response.ok) {
+    throw new Error(JSON.stringify(payload))
+  }
+  return payload as T
+}
+
+async function startLocalServer() {
+  const tempDir = mkdtempSync(join(tmpdir(), 'sealbench-runtime-'))
+  const server = spawn('bun', ['run', 'server'], {
+    env: {
+      ...process.env,
+      PORT: '3000',
+      SEALBENCH_DB_PATH: join(tempDir, 'sealbench.sqlite'),
+    },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+
+  server.stdout?.on('data', (chunk: unknown) => process.stdout.write(String(chunk)))
+  server.stderr?.on('data', (chunk: unknown) => process.stderr.write(String(chunk)))
+  await waitForHealth(server)
+
+  return {
+    stop() {
+      server.kill('SIGTERM')
+      rmSync(tempDir, { force: true, recursive: true })
+    },
+  }
+}
+
+async function verifyIssuePath() {
+  const walletAddress = process.env.SEALBENCH_VERIFY_WALLET?.trim() || fallbackWalletAddress
+  await request('/api/health', { method: 'GET' })
+  const bootstrap = await request('/api/bootstrap', { method: 'GET' })
   const session = await request<SessionResponse>('/api/session', {
     body: JSON.stringify({
       domain: new URL(baseUrl).host,
@@ -59,24 +117,65 @@ async function main() {
   const issuePayload = (await issueResponse.json()) as IssueResponse
 
   if (!issueResponse.ok) {
-    console.log(JSON.stringify({ issuePayload, packetId: packet.id, result: 'blocked' }, null, 2))
-    process.exitCode = issuePayload.status?.mode === 'missing_config' ? 0 : 1
+    const result = issuePayload.status?.mode === 'missing_config' ? 'missing_config' : 'blocked'
+    console.log(JSON.stringify({ bootstrap, expectIssued, issuePayload, packetId: packet.id, result }, null, 2))
+    process.exitCode = expectIssued || issuePayload.status?.mode !== 'missing_config' ? 1 : 0
     return
   }
 
-  console.log(JSON.stringify({ issuePayload, packetId: packet.id, result: 'issued' }, null, 2))
+  const assetAddress = issuePayload.packet?.assetAddress
+  const transactionSignature = issuePayload.packet?.transactionSignature
+  if (!assetAddress || !transactionSignature) {
+    console.log(
+      JSON.stringify(
+        {
+          bootstrap,
+          expectIssued,
+          issuePayload,
+          packetId: packet.id,
+          result: 'issued_receipt_missing_asset_or_transaction',
+        },
+        null,
+        2,
+      ),
+    )
+    process.exitCode = 1
+    return
+  }
+
+  console.log(
+    JSON.stringify(
+      {
+        assetAddress,
+        bootstrap,
+        expectIssued,
+        packetId: packet.id,
+        result: 'issued',
+        transactionSignature,
+      },
+      null,
+      2,
+    ),
+  )
 }
 
-async function request<T>(path: string, init: RequestInit): Promise<T> {
-  const response = await fetch(`${baseUrl}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...init,
-  })
-  const payload = await response.json()
-  if (!response.ok) {
-    throw new Error(JSON.stringify(payload))
+async function waitForHealth(server: ChildProcess) {
+  const deadline = Date.now() + 10_000
+  while (Date.now() < deadline) {
+    if (server.exitCode !== null) {
+      throw new Error(`server exited before health check with code ${server.exitCode}`)
+    }
+    try {
+      const response = await fetch(`${baseUrl}/api/health`)
+      if (response.ok) {
+        return
+      }
+    } catch {
+      // Server is still starting.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250))
   }
-  return payload as T
+  throw new Error('timed out waiting for local SealBench server')
 }
 
 main().catch((error: unknown) => {

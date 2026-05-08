@@ -26,7 +26,8 @@ services:
       traefik.http.services.sealbench080-websecure.loadbalancer.server.port: "3000"
     networks:
       - default
-      - dokploy-network
+      dokploy-network:
+        ipv4_address: 10.0.1.229
     restart: unless-stopped
     volumes:
       - sealbench-data:/data

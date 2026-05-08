@@ -7,6 +7,10 @@ services:
       NODE_ENV: production
       PORT: "3000"
       SEALBENCH_DB_PATH: /data/sealbench.sqlite
+      MPL_RPC_URL: ${MPL_RPC_URL:-}
+      MPL_ISSUER_PRIVATE_KEY: ${MPL_ISSUER_PRIVATE_KEY:-}
+      MPL_ISSUER_ADDRESS: ${MPL_ISSUER_ADDRESS:-}
+      SEALBENCH_VERIFY_WALLET: ${SEALBENCH_VERIFY_WALLET:-}
     labels:
       traefik.docker.network: dokploy-network
       traefik.enable: "true"

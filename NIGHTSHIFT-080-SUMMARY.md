@@ -2,7 +2,7 @@
 
 - Repo URL: https://github.com/obrera/nightshift-080-sealbench
 - Live URL: https://sealbench080.colmena.dev
-- Project HEAD SHA: final SHA reported by orchestrator; this summary update is included in the final commit, so embedding the final SHA here would change HEAD again.
+- Project HEAD SHA: b55d2e46e80baac227a995613f289f28d811a91f
 - Deploy method: Dokploy CLI GitHub-source compose deployment, project `nightshift-080-sealbench`, compose `sealbench080`, composeId `H8PbUYvx73BEdeknrVIzr`, branch `main`, compose path `./docker-compose.yml`.
 - Local validation:
   - `bun run check-types`: pass
@@ -15,5 +15,6 @@
 - Live HTTP status:
   - `https://sealbench080.colmena.dev`: 200
   - `https://sealbench080.colmena.dev/api/health`: 200
-- Mint/runtime proof result or blocker: `bun run verify:issue` against the live URL created packet `SB-080-B88524CC`, approved it, and reached `/api/evidence/:id/issue`; the endpoint returned the expected missing MPL runtime config blocker.
-- Exact blockers: real MPL Core issuance is blocked until `MPL_RPC_URL`, `MPL_ISSUER_PRIVATE_KEY`, and `MPL_ISSUER_ADDRESS` are configured in the Dokploy compose environment. No fake asset address or transaction signature was recorded.
+- Recovery: PR #1 removed a static `dokploy-network` IPv4 pin that collided with another Docker endpoint. Dokploy redeployed from `main`; container `sealbench080-oybg61-sealbench-1` is running on Docker-assigned overlay IP `10.0.1.8`.
+- Mint/runtime proof result: strict live proof passed with `SEALBENCH_BASE_URL=https://sealbench080.colmena.dev SEALBENCH_VERIFY_WALLET=obrE1BHvP4EX8PkxPxAJxYfQkgfgCmXyJadQA3yBb7G SEALBENCH_EXPECT_ISSUED=true bun run verify:issue`. It created packet `SB-080-58865541`, issued asset `7c9tFMr7UMWZPx4j4Nc755Qj6Vy6iEtJ6FHd8u1HLesk`, and recorded transaction `4Hw6Swaqm3PFE2bDhcNZXmG2u6qibRsVMjY1cq4EEqfifDKRkjpBy8XJBAXB27GL2DzJpYqhwDC7yih7cvmYHj2y`.
+- Exact blockers: none for live issue proof. Desktop and mobile Playwright screenshots rendered the real UI after hydration; console output only included the expected Solana Mobile Wallet Adapter log.

@@ -60,3 +60,8 @@ Without those values, issue requests return `409` with `mode: missing_config`, t
 - 2026-05-08T01:06:29Z live `/api/health`: HTTP 200, response `{"build":"080","date":"2026-05-07","ok":true,"service":"SealBench"}`
 - 2026-05-08T01:06:29Z live `/api/bootstrap`: currently falls through to the older deployed SPA, so the live service needs redeploy after this commit to expose the new bootstrap endpoint.
 - Live issue-path script: strict issued proof remains pending until the deployed environment has issuer config and returns asset plus transaction.
+- 2026-05-08T14:19Z recovery PR #1 removed the static `dokploy-network` IPv4 pin that collided with another Docker endpoint, merged as `b55d2e4`.
+- 2026-05-08T14:20Z live deploy recovered. Container `sealbench080-oybg61-sealbench-1` started on Docker-assigned overlay IP `10.0.1.8`.
+- 2026-05-08T14:21Z live `/api/health`: HTTP 200, response `{"build":"080","date":"2026-05-07","ok":true,"service":"SealBench"}`.
+- 2026-05-08T14:21Z strict live issue proof: `SEALBENCH_BASE_URL=https://sealbench080.colmena.dev SEALBENCH_VERIFY_WALLET=obrE1BHvP4EX8PkxPxAJxYfQkgfgCmXyJadQA3yBb7G SEALBENCH_EXPECT_ISSUED=true bun run verify:issue` returned `result: issued`, packet `SB-080-58865541`, asset `7c9tFMr7UMWZPx4j4Nc755Qj6Vy6iEtJ6FHd8u1HLesk`, transaction `4Hw6Swaqm3PFE2bDhcNZXmG2u6qibRsVMjY1cq4EEqfifDKRkjpBy8XJBAXB27GL2DzJpYqhwDC7yih7cvmYHj2y`.
+- 2026-05-08T14:25Z desktop and mobile Playwright screenshots loaded the real SealBench UI after waiting for hydration. Browser console had only the expected Solana Mobile Wallet Adapter log.

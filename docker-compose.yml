@@ -27,7 +27,6 @@ services:
     networks:
       default:
       dokploy-network:
-        ipv4_address: 10.0.1.229
     restart: unless-stopped
     volumes:
       - sealbench-data:/data
